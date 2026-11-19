@@ -1,0 +1,15 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Set VITE_API_URL in the Netlify dashboard, for example:
+# https://lakshmi-agency-api.onrender.com/api
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
