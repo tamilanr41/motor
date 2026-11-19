@@ -104,6 +104,8 @@ Use an external MySQL 8+ provider that allows remote TLS connections (for exampl
 
 6. Confirm `https://<your-render-service>.onrender.com/api/health` returns `{"status":"ok"}`.
 
+If you created a regular **Web Service** instead of a Blueprint, leave Render's default commands (`npm install && npm run build` and `npm start`). The root `build` script installs both the backend and frontend dependencies before building, and the root `start` script runs the backend, so the service works from the repository root.
+
 ### 3. Frontend on Netlify
 
 1. Choose **Add new site → Import an existing project** and connect the same GitHub repository.
