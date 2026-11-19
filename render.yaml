@@ -26,9 +26,9 @@ services:
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSL
-        value: "true"
-      - key: DB_SSL_REJECT_UNAUTHORIZED
         value: "false"
+      - key: DB_SSL_REJECT_UNAUTHORIZED
+        value: "true"
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN

@@ -94,7 +94,7 @@ Use an external MySQL 8+ provider that allows remote TLS connections (for exampl
    | `JWT_SECRET` | 32+ random characters |
    | `ADMIN_REGISTRATION_SECRET` | Private admin signup code |
 
-   `DB_SSL=true` and `DB_SSL_REJECT_UNAUTHORIZED=false` are preset for common hosted MySQL TLS setups. If your provider uses a verified certificate, set `DB_SSL_REJECT_UNAUTHORIZED=true`.
+   For Hostinger shared MySQL, `DB_SSL=false` is preset because its Remote MySQL endpoint does not document TLS support. Only change it to `true` if your provider explicitly offers SSL for external connections.
 
 5. After the first deploy, open Render Shell in the backend service and create the first admin:
 
