@@ -96,6 +96,8 @@ Use an external MySQL 8+ provider that allows remote TLS connections (for exampl
 
    For Hostinger shared MySQL, `DB_SSL=false` is preset because its Remote MySQL endpoint does not document TLS support. Only change it to `true` if your provider explicitly offers SSL for external connections.
 
+   CORS allows `FRONTEND_URL`, `PUBLIC_SITE_URL`, any origins listed in `CORS_ORIGINS` (comma separated), plus the built-in local and `https://lakshmiagency.netlify.app` origins. If the browser reports a CORS error, check that the exact Netlify origin (scheme and host, no trailing slash) is in one of those variables, then redeploy.
+
 5. After the first deploy, open Render Shell in the backend service and create the first admin:
 
    ```bash
