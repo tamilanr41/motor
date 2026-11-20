@@ -1,5 +1,13 @@
 import mysql from 'mysql2/promise';
+import dns from 'node:dns';
+import net from 'node:net';
 import 'dotenv/config';
+
+// Hostinger's hostname resolves to both A and AAAA records, but Render cannot
+// reach the IPv6 endpoint. Prefer IPv4 so MySQL connections don't fail with
+// ENETUNREACH before the retry logic can help.
+dns.setDefaultResultOrder?.('ipv4first');
+net.setDefaultAutoSelectFamily?.(true);
 
 const ssl = process.env.DB_SSL === 'true'
   ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
@@ -21,7 +29,7 @@ export const pool = mysql.createPool({
   ...(ssl ? { ssl } : {})
 });
 
-const transientCodes = new Set(['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'PROTOCOL_CONNECTION_LOST', 'ER_CON_COUNT_ERROR']);
+const transientCodes = new Set(['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'ECONNABORTED', 'ENETUNREACH', 'EHOSTUNREACH', 'EAI_AGAIN', 'PROTOCOL_CONNECTION_LOST', 'ER_CON_COUNT_ERROR']);
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function isTransient(err) {
