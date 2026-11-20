@@ -93,11 +93,59 @@ router.get('/overview',asyncHandler(async(_req,res)=>{
   const recent=await query('SELECT id,reference_no,customer_name,company_name,product_name,mobile,status,created_at FROM enquiries WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 8');
   res.json({ ...counts[0],recent });
 }));
-router.get('/team',asyncHandler(async(_req,res)=>res.json(await query('SELECT id,name,email,role FROM admins WHERE active=1 ORDER BY name'))));
+router.get('/team',asyncHandler(async(_req,res)=>res.json(await query('SELECT id,name,email,role,active FROM admins ORDER BY active DESC,name'))));
+router.post('/team',ownerOnly,asyncHandler(async(req,res)=>{
+  const d=z.object({name:z.string().trim().min(2).max(120),email:z.string().email().max(190),password:z.string().min(12).max(200),role:z.enum(['manager','editor']).default('editor')}).parse(req.body);
+  const email=d.email.toLowerCase();
+  if((await query('SELECT id FROM admins WHERE email=?',[email])).length) throw new HttpError(400,'An admin with this email already exists');
+  const hash=await bcrypt.hash(d.password,10);
+  const r=await query('INSERT INTO admins(name,email,password_hash,role,active) VALUES(?,?,?,?,1)',[d.name,email,hash,d.role]);
+  await log(req,'admin_created','admin',r.insertId,{role:d.role});res.status(201).json({id:r.insertId});
+}));
+router.put('/team/:id',ownerOnly,asyncHandler(async(req,res)=>{
+  const d=z.object({name:z.string().trim().min(2).max(120).optional(),email:z.string().email().max(190).optional(),role:z.enum(['owner','manager','editor']).optional(),active:z.boolean().optional()}).parse(req.body);
+  const id=Number(req.params.id);
+  if(id===req.admin.id&&((d.role&&d.role!=='owner')||d.active===false)) throw new HttpError(400,'You cannot change your own role or deactivate yourself');
+  const rows=await query('SELECT id,role FROM admins WHERE id=?',[id]);
+  if(!rows.length) throw new HttpError(404,'Admin not found');
+  if(rows[0].role==='owner'&&((d.role&&d.role!=='owner')||d.active===false)){
+    const owners=await query("SELECT COUNT(*) n FROM admins WHERE role='owner' AND active=1");
+    if(owners[0].n<=1) throw new HttpError(400,'At least one active owner must remain');
+  }
+  const fields=[],vals=[];
+  for(const [k,col] of [['name','name'],['email','email'],['role','role'],['active','active']]) if(d[k]!==undefined){fields.push(`${col}=?`);vals.push(k==='email'?d[k].toLowerCase():d[k]);}
+  if(fields.length){vals.push(id);await query(`UPDATE admins SET ${fields.join(',')} WHERE id=?`,vals);}
+  await log(req,'admin_updated','admin',id,d);res.json({success:true});
+}));
+router.delete('/team/:id',ownerOnly,asyncHandler(async(req,res)=>{
+  const id=Number(req.params.id);
+  if(id===req.admin.id) throw new HttpError(400,'You cannot deactivate yourself');
+  const rows=await query('SELECT role FROM admins WHERE id=?',[id]);
+  if(!rows.length) throw new HttpError(404,'Admin not found');
+  if(rows[0].role==='owner'){
+    const owners=await query("SELECT COUNT(*) n FROM admins WHERE role='owner' AND active=1");
+    if(owners[0].n<=1) throw new HttpError(400,'At least one active owner must remain');
+  }
+  await query('UPDATE admins SET active=0 WHERE id=?',[id]);await log(req,'admin_deactivated','admin',id);res.json({success:true});
+}));
 router.get('/customers',asyncHandler(async(_req,res)=>res.json(await query(`SELECT c.id,c.name,c.company_name,c.email,c.mobile,c.created_at,c.last_login_at,
   COUNT(e.id) enquiry_count,MAX(e.created_at) last_enquiry_at
   FROM customer_accounts c LEFT JOIN enquiries e ON e.customer_account_id=c.id AND e.deleted_at IS NULL
   WHERE c.active=1 GROUP BY c.id ORDER BY c.created_at DESC LIMIT 500`))));
+router.put('/customers/:id',ownerOrManager,asyncHandler(async(req,res)=>{
+  const d=z.object({name:z.string().trim().min(2).max(160).optional(),company_name:z.string().max(180).nullable().optional(),email:z.string().email().max(190).optional(),mobile:z.string().trim().min(5).max(40).optional(),active:z.boolean().optional()}).parse(req.body);
+  const id=Number(req.params.id);
+  if(!(await query('SELECT id FROM customer_accounts WHERE id=?',[id])).length) throw new HttpError(404,'Customer not found');
+  if(d.email&&(await query('SELECT id FROM customer_accounts WHERE email=? AND id<>?',[d.email.toLowerCase(),id])).length) throw new HttpError(400,'Another customer uses this email');
+  const fields=[],vals=[];
+  for(const [k,col] of [['name','name'],['company_name','company_name'],['email','email'],['mobile','mobile'],['active','active']]) if(d[k]!==undefined){fields.push(`${col}=?`);vals.push(k==='email'?d[k].toLowerCase():d[k]);}
+  if(fields.length){vals.push(id);await query(`UPDATE customer_accounts SET ${fields.join(',')} WHERE id=?`,vals);}
+  await log(req,'customer_updated','customer',id,d);res.json({success:true});
+}));
+router.delete('/customers/:id',ownerOnly,asyncHandler(async(req,res)=>{
+  await query('UPDATE customer_accounts SET active=0 WHERE id=?',[req.params.id]);
+  await log(req,'customer_deactivated','customer',req.params.id);res.json({success:true});
+}));
 
 router.get('/products',asyncHandler(async(req,res)=>{
   const q=`%${String(req.query.q||'').slice(0,100)}%`;
@@ -236,6 +284,10 @@ router.patch('/enquiries/:id',asyncHandler(async(req,res)=>{
   if(d.assigned_admin_id!==undefined) await query('UPDATE enquiries SET assigned_admin_id=? WHERE id=?',[d.assigned_admin_id,req.params.id]);
   if(d.note) await query('INSERT INTO enquiry_notes(enquiry_id,admin_id,note) VALUES(?,?,?)',[req.params.id,req.admin.id,d.note]);
   await log(req,'enquiry_updated','enquiry',req.params.id,{status:d.status});res.json({success:true});
+}));
+router.delete('/enquiries/:id',ownerOrManager,asyncHandler(async(req,res)=>{
+  await query('UPDATE enquiries SET deleted_at=NOW() WHERE id=? AND deleted_at IS NULL',[req.params.id]);
+  await log(req,'enquiry_deleted','enquiry',req.params.id);res.json({success:true});
 }));
 router.get('/enquiries.csv',asyncHandler(async(_req,res)=>{
   const rows=await query('SELECT reference_no,customer_name,company_name,mobile,email,category_name,product_name,brand_preference,quantity,specifications,message,status,created_at FROM enquiries WHERE deleted_at IS NULL ORDER BY created_at DESC');
