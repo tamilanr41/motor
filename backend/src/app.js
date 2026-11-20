@@ -16,6 +16,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
+  // Render/Cloudflare terminate TLS and set X-Forwarded-For. Trust one proxy
+  // hop so rate limiting uses the real client IP instead of the proxy IP.
+  app.set('trust proxy', 1);
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   const defaultOrigins = [
     'http://localhost:5173',
