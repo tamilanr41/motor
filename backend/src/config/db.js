@@ -13,12 +13,35 @@ export const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   waitForConnections: true,
   connectionLimit: 10,
+  connectTimeout: 10000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
   namedPlaceholders: true,
   charset: 'utf8mb4',
   ...(ssl ? { ssl } : {})
 });
 
+const transientCodes = new Set(['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'PROTOCOL_CONNECTION_LOST', 'ER_CON_COUNT_ERROR']);
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+function isTransient(err) {
+  if (!err) return false;
+  if (err.name === 'AggregateError' || transientCodes.has(err.code)) return true;
+  return Array.isArray(err.errors) && err.errors.some(isTransient);
+}
+
 export async function query(sql, params = {}) {
-  const [rows] = await pool.execute(sql, params);
-  return rows;
+  const retryable = /^\s*(SELECT|SHOW|EXPLAIN)\b/i.test(sql.trim());
+  let lastError;
+  for (let attempt = 0; attempt < (retryable ? 3 : 1); attempt += 1) {
+    try {
+      const [rows] = await pool.execute(sql, params);
+      return rows;
+    } catch (err) {
+      lastError = err;
+      if (!retryable || !isTransient(err) || attempt === 2) throw err;
+      await wait(150 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }

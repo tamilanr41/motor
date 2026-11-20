@@ -88,16 +88,14 @@ router.post('/auth/change-password',asyncHandler(async(req,res)=>{
 }));
 
 router.get('/overview',asyncHandler(async(_req,res)=>{
-  const [counts,recent]=await Promise.all([
-    query(`SELECT (SELECT COUNT(*) FROM products WHERE deleted_at IS NULL) total_products,
-      (SELECT COUNT(*) FROM categories WHERE deleted_at IS NULL) total_categories,
-      (SELECT COUNT(*) FROM brands WHERE deleted_at IS NULL) total_brands,
-      (SELECT COUNT(*) FROM customer_accounts WHERE active=1) total_customers,
-      (SELECT COUNT(*) FROM enquiries WHERE deleted_at IS NULL) total_enquiries,
-      (SELECT COUNT(*) FROM enquiries WHERE status='New' AND deleted_at IS NULL) new_enquiries,
-      (SELECT COUNT(*) FROM enquiries WHERE status IN('New','Contacted','Quotation Sent','Follow-up') AND deleted_at IS NULL) pending_quotations`),
-    query('SELECT id,reference_no,customer_name,company_name,product_name,mobile,status,created_at FROM enquiries WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 8')
-  ]);
+  const counts=await query(`SELECT (SELECT COUNT(*) FROM products WHERE deleted_at IS NULL) total_products,
+    (SELECT COUNT(*) FROM categories WHERE deleted_at IS NULL) total_categories,
+    (SELECT COUNT(*) FROM brands WHERE deleted_at IS NULL) total_brands,
+    (SELECT COUNT(*) FROM customer_accounts WHERE active=1) total_customers,
+    (SELECT COUNT(*) FROM enquiries WHERE deleted_at IS NULL) total_enquiries,
+    (SELECT COUNT(*) FROM enquiries WHERE status='New' AND deleted_at IS NULL) new_enquiries,
+    (SELECT COUNT(*) FROM enquiries WHERE status IN('New','Contacted','Quotation Sent','Follow-up') AND deleted_at IS NULL) pending_quotations`);
+  const recent=await query('SELECT id,reference_no,customer_name,company_name,product_name,mobile,status,created_at FROM enquiries WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 8');
   res.json({ ...counts[0],recent });
 }));
 router.get('/team',asyncHandler(async(_req,res)=>res.json(await query('SELECT id,name,email,role FROM admins WHERE active=1 ORDER BY name'))));
