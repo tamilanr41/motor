@@ -58,7 +58,7 @@ function AuthScreen({ mode }) {
         <div className="customer-auth-bottom"><span>PRODUCTS / SOURCING / SUPPORT</span><span>LAKSHMI AGENCY</span></div>
       </section>
       <section className="customer-auth-form-panel">
-        <button type="button" className="customer-admin-key" onClick={() => setAdminOpen(true)} aria-label="Open admin workspace" title="Admin workspace"><KeyRound size={15}/></button>
+        <Link to="/admin" className="customer-admin-key" aria-label="Admin login" title="Admin login"><KeyRound size={15}/></Link>
         <span className="customer-auth-mark"><SiteLogo className="auth-logo"/></span>
         <span className="customer-auth-kicker">CUSTOMER WORKSPACE</span>
         <h2>{register ? 'Create your account.' : 'Welcome back.'}</h2>

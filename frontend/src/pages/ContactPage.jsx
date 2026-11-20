@@ -3,13 +3,24 @@ import { ArrowUpRight, Mail, MapPin, Phone } from 'lucide-react';
 import { api } from '../services/api.js';
 import { PageTitle } from '../components/Site.jsx';
 import { EnquiryForm } from './PublicPages.jsx';
+import { fallbackCatalogue } from '../utils/catalogue.js';
 
 const defaultAddress='Old No: 99, New No: 203, Angappa Naicken Street, Parrys, Chennai – 600001, Tamil Nadu, India.';
 
 export default function ContactPage(){
   const [settings,setSettings]=useState({}),[content,setContent]=useState(null);
   useEffect(()=>{
-    Promise.all([api.get('/settings/public'),api.get('/content/contact')]).then(([s,c])=>{setSettings(s.data);setContent(c.data);if(c.data?.meta_title)document.title=c.data.meta_title;const meta=document.querySelector('meta[name="description"]');if(meta&&c.data?.meta_description)meta.content=c.data.meta_description;}).catch(()=>{});
+    Promise.all([api.get('/settings/public'),api.get('/content/contact')])
+      .then(([s,c])=>{
+        setSettings(s.data);
+        setContent(c.data);
+        if(c.data?.meta_title) document.title=c.data.meta_title;
+        const meta=document.querySelector('meta[name="description"]');
+        if(meta&&c.data?.meta_description) meta.content=c.data.meta_description;
+      })
+      .catch(()=>{
+        setSettings(fallbackCatalogue.settings || {});
+      });
   },[]);
   const address=settings.address||defaultAddress;
   const phones=(settings.phones||'80127 72734, 97872 12722, 044-45522370').split(',').map(v=>v.trim()).filter(Boolean);

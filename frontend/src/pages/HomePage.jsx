@@ -39,8 +39,9 @@ export default function HomePage() {
       setCategories(c.status === 'fulfilled' ? c.value.data : fallbackCatalogue.categories);
       setBrands(b.status === 'fulfilled' ? b.value.data : fallbackCatalogue.brands);
       setProducts(p.status === 'fulfilled' ? p.value.data.items : fallbackProducts({ featured: '1', limit: 4 }).items);
-      setBanner(bn.status === 'fulfilled' ? bn.value.data[0] || null : null);
+      setBanner(bn.status === 'fulfilled' ? (bn.value.data[0] || null) : (fallbackCatalogue.banners?.[0] || null));
       if (s.status === 'fulfilled') setSettings(s.value.data);
+      else if (fallbackCatalogue.settings) setSettings(fallbackCatalogue.settings);
     });
   }, []);
 
@@ -49,12 +50,13 @@ export default function HomePage() {
   const featuredCategories = (categories.some((c) => Boolean(c.is_featured)) ? categories.filter((c) => Boolean(c.is_featured)) : categories).slice(0, 4);
   const brandNames = brands.slice(0, 18).map((b) => b.name);
   const heroImage = banner?.image_url || editorialImages.hero;
-  const phone = (settings.phones || '80127 72734, 97872 12722, 044-45522370').split(',')[0].trim();
+  const rawPhones = typeof settings.phones === 'string' ? settings.phones : '80127 72734, 97872 12722, 044-45522370';
+  const phone = rawPhones.split(',')[0].trim();
   const email = settings.email || 'chennailakshmiagency@gmail.com';
 
   return <>
     {/* Hero */}
-    <section className="fab-hero" ref={heroRef}>
+    <section className="fab-hero" ref={heroRef} style={{ position: 'relative' }}>
       <motion.div className="fab-hero__bg" style={{ y: heroDrift, backgroundImage: `url("${heroImage}")` }} />
       <div className="fab-hero__overlay" />
       <div className="fab-hero__grid" />
