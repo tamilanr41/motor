@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Boxes, Check, Clock3, FileText, Ke
 import { motion } from 'framer-motion';
 import { api } from '../services/api.js';
 import { SiteLogo } from '../components/SiteLogo.jsx';
+import { LanguageSwitcher } from '../i18n/LanguageSwitcher.jsx';
 
 const clearCustomer = () => {
   localStorage.removeItem('la_customer_token');
@@ -44,6 +45,7 @@ function AuthScreen({ mode }) {
 
   return <main className="customer-auth-page">
     <Link className="customer-auth-back" to="/"><ArrowLeft size={15}/> Back to Lakshmi Agency</Link>
+    <div className="customer-auth-lang"><LanguageSwitcher /></div>
     <div className="customer-auth-shell">
       <section className="customer-auth-visual">
         <div className="customer-auth-photo"/>
@@ -171,7 +173,7 @@ function PortalShell() {
       </div>
     </aside>
     <main className="customer-portal-main">
-      <header className="customer-portal-top"><div><span>LAKSHMI AGENCY / CUSTOMER DESK</span><b>Requirement workspace</b></div><Link to="/quote" className="customer-top-quote">New quotation request <ArrowUpRight size={16}/></Link></header>
+      <header className="customer-portal-top"><div><span>LAKSHMI AGENCY / CUSTOMER DESK</span><b>Requirement workspace</b></div><div className="customer-portal-top-actions"><LanguageSwitcher /><Link to="/quote" className="customer-top-quote">New quotation request <ArrowUpRight size={16}/></Link></div></header>
       <div className="customer-portal-content">
         <Routes>
           <Route index element={<Navigate to="dashboard" replace/>}/>

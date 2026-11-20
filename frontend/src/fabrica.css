@@ -624,3 +624,22 @@ h1,h2,h3,h4,h5,h6,.brand-lockup b,.button,.fab-btn{font-family:'Outfit',sans-ser
   .review-card-actions{flex-direction:column}
   .review-card .button-outline-dark{width:100%}
 }
+
+/* Navbar language switcher */
+.lang-switch{display:flex;align-items:center;gap:5px;color:#334355;white-space:nowrap}
+.site-header .lang-switch{color:#d3d6e3}
+.site-header.transparent .lang-switch{color:#fff}
+.lang-switch button{border:0;background:transparent;color:inherit;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.06em;line-height:1;padding:5px 2px;cursor:pointer;opacity:.6;transition:opacity .2s,color .2s,transform .2s}
+.lang-switch button:hover{opacity:1}
+.lang-switch button.is-active{opacity:1;color:var(--f-orange)}
+.lang-switch>span{opacity:.45;font-size:10px}
+.nav-mobile-actions .lang-switch{color:#334355;gap:3px}
+.nav-mobile-actions .lang-switch button{display:inline-flex;padding:3px 0;font-size:10px}
+.nav-mobile-actions .lang-switch button:hover{transform:none;color:var(--f-orange)}
+.site-header.transparent .nav-mobile-actions .lang-switch{color:#fff}
+@media(max-width:720px){.main-nav .lang-switch{display:none}}
+.customer-auth-lang{position:absolute;top:23px;right:max(24px,calc((100vw - 1160px)/2));color:#526174}
+.customer-auth-lang .lang-switch{color:#526174}
+.customer-portal-top-actions{display:flex;align-items:center;gap:14px}
+.customer-portal-top .lang-switch{color:#526174}
+@media(max-width:760px){.customer-auth-lang{top:24px;right:16px}}

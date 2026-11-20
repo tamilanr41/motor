@@ -5,6 +5,7 @@ import { api } from '../services/api.js';
 import { productImageFor, productMessage, waLink } from '../utils/content.js';
 import { SiteLogo } from './SiteLogo.jsx';
 import { motion, useScroll, useSpring } from 'framer-motion';
+import { LanguageSwitcher } from '../i18n/LanguageSwitcher.jsx';
 
 const nav=[['Products','/products'],['Brands','/brands'],['Services','/services'],['About','/about'],['Contact','/contact']];
 export function Header(){
@@ -16,8 +17,8 @@ export function Header(){
   const headerClass=`site-header${loc.pathname==='/'?' home':''}${loc.pathname==='/'&&!scrolled?' transparent':''}${scrolled?' scrolled':''}`;
   return <header className={headerClass}><div className="topline"><div className="wrap topline-inner"><span>Industrial supplies for domestic, commercial & industrial needs</span><div><a href={`tel:${primaryPhone.replace(/[^\d+]/g,'')}`}><Phone size={13}/> {primaryPhone}</a><Link to="/contact">Visit our Parrys store <ArrowUpRight size={13}/></Link></div></div></div>
     <div className="wrap nav-row"><Link to="/" className="brand-lockup"><span className="brand-logo"><SiteLogo className="site-logo"/></span><span><b>{settings.business_name||'LAKSHMI AGENCY'}</b><small>INDUSTRIAL PRODUCTS & SUPPLIES</small></span></Link>
-    <nav className={open?'main-nav open':'main-nav'}>{nav.map(([label,url])=><NavLink end={url==='/'} key={url} to={url}>{label}</NavLink>)}<Link className="nav-account" to={accountUrl}><UserRound size={15}/>{localStorage.getItem('la_customer_token')?'My account':'Sign in'}</Link><Link className="nav-quote" to="/quote">Request a quote <ArrowUpRight size={15}/></Link></nav>
-    <div className="nav-mobile-actions"><Link to="/quote" className="mobile-quote">Quote</Link><button aria-label="Toggle menu" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></div></div></header>
+    <nav className={open?'main-nav open':'main-nav'}>{nav.map(([label,url])=><NavLink end={url==='/'} key={url} to={url}>{label}</NavLink>)}<LanguageSwitcher /><Link className="nav-account" to={accountUrl}><UserRound size={15}/>{localStorage.getItem('la_customer_token')?'My account':'Sign in'}</Link><Link className="nav-quote" to="/quote">Request a quote <ArrowUpRight size={15}/></Link></nav>
+    <div className="nav-mobile-actions"><LanguageSwitcher mobile /><Link to="/quote" className="mobile-quote">Quote</Link><button aria-label="Toggle menu" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></div></div></header>
 }
 
 export function Footer(){
