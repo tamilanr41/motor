@@ -42,6 +42,7 @@ export function createApp() {
   app.get('/api/health', async (_req, res, next) => {
     try { await pool.query('SELECT 1'); res.json({ status: 'ok' }); } catch (err) { next(err); }
   });
+  app.get('/api/debug-env', (_req, res) => res.json({ db_ssl: process.env.DB_SSL || '', db_ssl_reject: process.env.DB_SSL_REJECT_UNAUTHORIZED || '', jwt_set: Boolean(process.env.JWT_SECRET), node: process.version, db_host_set: Boolean(process.env.DB_HOST), db_name_set: Boolean(process.env.DB_NAME) }));
   app.use('/api', publicRoutes);
   app.use('/api/customer', customerRoutes);
   app.use('/api/admin', adminRoutes);
