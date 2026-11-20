@@ -643,3 +643,72 @@ h1,h2,h3,h4,h5,h6,.brand-lockup b,.button,.fab-btn{font-family:'Outfit',sans-ser
 .customer-portal-top-actions{display:flex;align-items:center;gap:14px}
 .customer-portal-top .lang-switch{color:#526174}
 @media(max-width:760px){.customer-auth-lang{top:24px;right:16px}}
+
+/* Tamil typography: dedicated glyphs, natural spacing and layout that fits the same shells */
+html[lang="ta"] :is(.site-header,.footer),
+html[lang="ta"] :is(.site-header,.footer) *,
+html[lang="ta"] #root>main,
+html[lang="ta"] #root>main *,
+html[lang="ta"] .customer-portal,
+html[lang="ta"] .customer-portal *{
+  font-family:'Noto Sans Tamil','DM Sans',Arial,sans-serif!important;
+  letter-spacing:0!important;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  text-transform:none!important
+}
+html[lang="ta"] h1,html[lang="ta"] h2,html[lang="ta"] h3,html[lang="ta"] h4{line-height:1.18}
+html[lang="ta"] .fab-hero h1{font-size:clamp(32px,4vw,48px);line-height:1.2;max-width:680px}
+html[lang="ta"] .hero h1,html[lang="ta"] .page-title h1,html[lang="ta"] .customer-auth-copy h1,html[lang="ta"] .customer-auth-form-panel h2,html[lang="ta"] .customer-welcome-card h2{font-size:clamp(28px,3.5vw,42px)}
+html[lang="ta"] .fab-section-head h2,html[lang="ta"] .fab-values h2,html[lang="ta"] .fab-brief h2,html[lang="ta"] .fab-intro h2,html[lang="ta"] .fab-process h2,html[lang="ta"] .fab-about__copy h2,html[lang="ta"] .page-title h1{font-size:clamp(26px,3.2vw,42px)}
+html[lang="ta"] .fab-hero p{font-size:13px;line-height:1.75}
+html[lang="ta"] .fab-btn,html[lang="ta"] .button{min-height:46px;padding:0 16px;font-size:12px;white-space:normal}
+html[lang="ta"] .fab-kicker,html[lang="ta"] .eyebrow,html[lang="ta"] .footer-grid h4,html[lang="ta"] .fab-label{font-size:10px}
+html[lang="ta"] .topline-inner{min-width:0;gap:12px}
+html[lang="ta"] .topline-inner>span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[lang="ta"] .topline-inner>div{flex:0 0 auto;gap:14px;white-space:nowrap}
+html[lang="ta"] .nav-row{min-width:0;gap:12px}
+html[lang="ta"] .brand-lockup{min-width:0;overflow:hidden}
+html[lang="ta"] .brand-lockup>span:last-child{min-width:0;max-width:180px;overflow:hidden}
+html[lang="ta"] .brand-lockup b,html[lang="ta"] .brand-lockup small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[lang="ta"] .nav-mobile-actions{flex:0 0 auto;gap:8px}
+html[lang="ta"] .lang-switch{gap:3px}
+html[lang="ta"] .lang-switch button{font-size:9px;padding:4px 0}
+html[lang="ta"] .lang-switch>span{font-size:9px}
+html[lang="ta"] .mobile-quote{font-size:10px;white-space:nowrap}
+html[lang="ta"] .footer-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:26px}
+html[lang="ta"] .footer-about>p{max-width:100%;font-size:11px}
+html[lang="ta"] .fab-about__visual,html[lang="ta"] .fab-process__visual{overflow:hidden}
+html[lang="ta"] .customer-portal-top-actions{gap:9px}
+
+/* Tamil uses the compact menu before the English navigation becomes crowded */
+@media(min-width:721px) and (max-width:1240px){
+  html[lang="ta"] .main-nav{display:none;position:absolute;z-index:30;left:0;right:0;top:114px;align-items:stretch;gap:0;padding:14px max(20px,calc((100vw - 1160px)/2)) 18px;background:#0b0d26;box-shadow:0 18px 34px #07091c66}
+  html[lang="ta"] .site-header.scrolled .main-nav{top:66px}
+  html[lang="ta"] .main-nav.open{display:flex;flex-direction:column}
+  html[lang="ta"] .main-nav>a:not(.nav-quote),html[lang="ta"] .main-nav .nav-account,html[lang="ta"] .main-nav .lang-switch{display:flex;align-items:center;min-height:42px;padding:8px 2px;border-bottom:1px solid #ffffff1f;color:#fff;font-size:12px}
+  html[lang="ta"] .main-nav .lang-switch{justify-content:flex-start;gap:6px}
+  html[lang="ta"] .main-nav .nav-account svg{margin-right:8px}
+  html[lang="ta"] .main-nav .nav-quote{width:100%;min-height:46px;margin-top:12px;justify-content:center;font-size:12px}
+  html[lang="ta"] .nav-mobile-actions{display:flex}
+}
+
+@media(max-width:720px){
+  html[lang="ta"] .brand-lockup>span:last-child{max-width:105px}
+  html[lang="ta"] .brand-lockup b{font-size:11px}
+  html[lang="ta"] .brand-lockup small{font-size:6px}
+  html[lang="ta"] .fab-hero h1{font-size:clamp(27px,7.6vw,34px);max-width:100%;margin:18px 0 14px}
+  html[lang="ta"] .hero h1,html[lang="ta"] .page-title h1,html[lang="ta"] .customer-auth-copy h1,html[lang="ta"] .customer-auth-form-panel h2,html[lang="ta"] .customer-welcome-card h2{font-size:clamp(24px,7vw,32px)}
+  html[lang="ta"] .fab-btn,html[lang="ta"] .button{min-height:44px;padding:0 12px;font-size:11px}
+  html[lang="ta"] .nav-mobile-actions{gap:6px}
+  html[lang="ta"] .mobile-quote{font-size:9px}
+  html[lang="ta"] .lang-switch button{font-size:8px}
+  html[lang="ta"] .lang-switch>span{font-size:8px}
+  html[lang="ta"] .fab-about__badge{min-width:0;max-width:100%;left:0;padding:13px 15px}
+  html[lang="ta"] .fab-about__note{display:none}
+}
+@media(max-width:390px){
+  html[lang="ta"] .brand-lockup>span:last-child{max-width:88px}
+  html[lang="ta"] .nav-mobile-actions{gap:5px}
+  html[lang="ta"] .mobile-quote{font-size:8px}
+}
