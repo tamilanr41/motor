@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/errors.js';
 import publicRoutes from './routes/public.js';
 import adminRoutes from './routes/admin.js';
 import customerRoutes from './routes/customer.js';
+import assetRoutes from './routes/assets.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export function createApp() {
@@ -42,6 +43,7 @@ export function createApp() {
   app.get('/api/health', async (_req, res, next) => {
     try { await pool.query('SELECT 1'); res.json({ status: 'ok' }); } catch (err) { next(err); }
   });
+  app.use('/api/assets', assetRoutes);
   app.use('/api', publicRoutes);
   app.use('/api/customer', customerRoutes);
   app.use('/api/admin', adminRoutes);

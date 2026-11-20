@@ -2,23 +2,18 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
-import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { pool, query } from '../config/db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { verifyImageUploads } from '../middleware/imageValidation.js';
+import { storeAsset, deleteAsset } from '../utils/assets.js';
 import { asyncHandler, HttpError, slug } from '../utils/http.js';
 
 const router=Router();
-const here=path.dirname(fileURLToPath(import.meta.url));
-const uploadDir=path.resolve(here,'../..',process.env.UPLOAD_DIR||'uploads');
-const storage=multer.diskStorage({
-  destination(_req,_file,cb){ cb(null,uploadDir); },
-  filename(_req,file,cb){ const ext=({ 'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp' })[file.mimetype]; cb(null,`${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`); }
-});
-const upload=multer({storage,limits:{fileSize:Number(process.env.MAX_UPLOAD_MB||8)*1024*1024,files:8},fileFilter(_req,file,cb){ cb(null,['image/jpeg','image/png','image/webp'].includes(file.mimetype)); }});
+// Keep bytes in memory, then persist them in MySQL via the asset store.
+// Render's container filesystem is ephemeral, so disk uploads are not durable.
+const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:Number(process.env.MAX_UPLOAD_MB||8)*1024*1024,files:8},fileFilter(_req,file,cb){ cb(null,['image/jpeg','image/png','image/webp'].includes(file.mimetype)); }});
 
 async function log(req,action,type,id,details={}) {
   await query('INSERT INTO admin_activity_logs(admin_id,action,entity_type,entity_id,details,ip_address) VALUES(?,?,?,?,?,?)',[req.admin?.id||null,action,type,id,JSON.stringify(details),req.ip]);
@@ -165,15 +160,30 @@ router.put('/products/:id',ownerOrManager,asyncHandler(async(req,res)=>{const id
 router.delete('/products/:id',ownerOrManager,asyncHandler(async(req,res)=>{await query('UPDATE products SET deleted_at=NOW(),is_active=0 WHERE id=? AND deleted_at IS NULL',[req.params.id]);await log(req,'product_deleted','product',req.params.id);res.json({success:true});}));
 router.post('/products/:id/images',ownerOrManager,upload.array('images',8),verifyImageUploads,asyncHandler(async(req,res)=>{
   const files=req.files||[];
-  for(let i=0;i<files.length;i++) await query('INSERT INTO product_images(product_id,image_url,alt_text,display_order,is_primary) VALUES(?,?,?,?,?)',[req.params.id,`/uploads/${files[i].filename}`,req.body.alt_text||null,i,i===0]);
+  if(!files.length) throw new HttpError(400,'Select a JPG, PNG or WebP image no larger than the upload limit.');
+  const existing=await query('SELECT COUNT(*) n, COALESCE(MAX(display_order),-1) last_order FROM product_images WHERE product_id=?',[req.params.id]);
+  const start=(existing[0]?.last_order??-1)+1;
+  const hasPrimary=(existing[0]?.n||0)>0;
+  const images=[];
+  for(let i=0;i<files.length;i++){
+    const url=await storeAsset(files[i]);
+    await query('INSERT INTO product_images(product_id,image_url,alt_text,display_order,is_primary) VALUES(?,?,?,?,?)',[req.params.id,url,req.body.alt_text||null,start+i,!hasPrimary&&i===0?1:0]);
+    images.push(url);
+  }
   await log(req,'product_images_uploaded','product',req.params.id,{count:files.length});
-  res.status(201).json({images:files.map(f=>`/uploads/${f.filename}`)});
+  res.status(201).json({images});
 }));
 router.post('/assets',ownerOrManager,upload.single('image'),verifyImageUploads,asyncHandler(async(req,res)=>{
   if(!req.file) throw new HttpError(400,'Select a JPG, PNG or WebP image no larger than the upload limit.');
-  res.status(201).json({url:`/uploads/${req.file.filename}`});
+  res.status(201).json({url:await storeAsset(req.file)});
 }));
-router.delete('/product-images/:id',ownerOrManager,asyncHandler(async(req,res)=>{await query('DELETE FROM product_images WHERE id=?',[req.params.id]);res.json({success:true});}));
+router.delete('/product-images/:id',ownerOrManager,asyncHandler(async(req,res)=>{
+  const rows=await query('SELECT image_url FROM product_images WHERE id=?',[req.params.id]);
+  if(!rows[0]) throw new HttpError(404,'Image not found');
+  await query('DELETE FROM product_images WHERE id=?',[req.params.id]);
+  await deleteAsset(rows[0].image_url);
+  res.json({success:true});
+}));
 
 router.get('/categories',asyncHandler(async(_req,res)=>{
   const categories=await query(`SELECT c.*,(SELECT COUNT(*) FROM subcategories s WHERE s.category_id=c.id AND s.is_active=1) subcategory_count FROM categories c WHERE c.deleted_at IS NULL ORDER BY c.display_order,c.name`);

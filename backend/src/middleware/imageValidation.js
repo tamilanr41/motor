@@ -8,13 +8,23 @@ function matchesImageSignature(buffer,mime) {
   return false;
 }
 
+async function readSignature(file) {
+  if (file.buffer) return file.buffer.subarray(0, 12);
+  const handle = await open(file.path, 'r');
+  const bytes = Buffer.alloc(12);
+  try { await handle.read(bytes, 0, 12, 0); } finally { await handle.close(); }
+  return bytes;
+}
+
 export async function verifyImageUploads(req,_res,next) {
   const files=[...(req.files||[]),...(req.file?[req.file]:[])];
   try {
     for(const file of files){
-      const handle=await open(file.path,'r');const bytes=Buffer.alloc(12);
-      try{await handle.read(bytes,0,12,0);}finally{await handle.close();}
-      if(!matchesImageSignature(bytes,file.mimetype)){await unlink(file.path).catch(()=>{});throw new HttpError(400,'The uploaded file is not a valid JPG, PNG or WebP image.');}
+      const bytes = await readSignature(file);
+      if(!matchesImageSignature(bytes,file.mimetype)){
+        if (file.path) await unlink(file.path).catch(()=>{});
+        throw new HttpError(400,'The uploaded file is not a valid JPG, PNG or WebP image.');
+      }
     }
     next();
   }catch(err){next(err);}

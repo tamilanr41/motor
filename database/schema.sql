@@ -1,6 +1,16 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS=0;
 
+-- Uploaded image bytes are stored in MySQL so they survive Render redeploys,
+-- where the local filesystem is ephemeral. Served publicly via /api/assets/:id.
+CREATE TABLE IF NOT EXISTS assets (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  mime_type VARCHAR(120) NOT NULL,
+  file_name VARCHAR(255) NULL,
+  data LONGBLOB NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS admins (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
