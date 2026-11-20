@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pool, query } from './config/db.js';
+import { query } from './config/db.js';
 import { errorHandler } from './middleware/errors.js';
 import publicRoutes from './routes/public.js';
 import adminRoutes from './routes/admin.js';
@@ -41,7 +41,7 @@ export function createApp() {
   app.use('/api/customer/auth/register', rateLimit({ windowMs: 60 * 60 * 1000, limit: 8, message: { error: 'Too many account attempts. Please try again later.' } }));
   app.use('/api/enquiries', rateLimit({ windowMs: 15 * 60 * 1000, limit: 12, message: { error: 'Too many enquiries were submitted from this connection. Please try again later.' } }));
   app.get('/api/health', async (_req, res, next) => {
-    try { await pool.query('SELECT 1'); res.json({ status: 'ok' }); } catch (err) { next(err); }
+    try { await query('SELECT 1'); res.json({ status: 'ok' }); } catch (err) { next(err); }
   });
   app.use('/api/assets', assetRoutes);
   app.use('/api', publicRoutes);
