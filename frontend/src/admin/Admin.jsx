@@ -16,7 +16,7 @@ function Login(){
 const navItems=[['Overview','dashboard',LayoutDashboard],['Team','team',Users],['Products','products',Package],['Catalogue review','review',ShieldCheck],['Categories','categories',Boxes],['Subcategories','subcategories',Boxes],['Brands','brands',Tags],['Customers','customers',CircleUserRound],['Enquiries','enquiries',Users],['Banners','banners',ImagePlus],['Website settings','settings',Settings],['Page content','content',FileText]];
 function AdminShell(){
   const [admin,setAdmin]=useState(null),[mobile,setMobile]=useState(false),[error,setError]=useState('');const go=useNavigate();
-  useEffect(()=>{api.get('/admin/auth/me').then(r=>setAdmin(r.data)).catch(()=>{localStorage.removeItem('la_admin_token');go('/admin');});},[]);
+  useEffect(()=>{if(!localStorage.getItem('la_admin_token'))return;api.get('/admin/auth/me').then(r=>setAdmin(r.data)).catch(()=>{localStorage.removeItem('la_admin_token');go('/admin');});},[]);
   const logout=()=>{localStorage.removeItem('la_admin_token');localStorage.removeItem('la_admin_name');go('/admin');};
   if(!localStorage.getItem('la_admin_token'))return <Navigate to="/admin" replace/>;
   if(!admin)return <div className="admin-loading">Loading secure workspace…</div>;
